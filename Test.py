@@ -48,7 +48,7 @@ for imIdx, imName in enumerate(imNames):
         imi = Image.open('input/' + imName + '.png')
     print imName
 
-    # prepare the image
+    # prepare the image, limit image size for memory
     height, width = imi.size
     if height > width and height > 450:
         imi = imi.resize((450, int(450 * width/height)))
@@ -99,5 +99,10 @@ for imIdx, imName in enumerate(imNames):
     ax1.imshow(imi)
     ax1.scatter(Q[:,1], Q[:,0], c='r', s=20)
     ax2.imshow(S)
-    plt.show()
+    #plt.show()
 
+    # transfer score to probability with softmax for later unary term
+    score = net2.blobs['score'].data[0]
+
+    prob = np.exp(score) / np.sum(np.exp(score), 0)
+    prob_max = np.max(prob, 0) # (0.28, 1)
