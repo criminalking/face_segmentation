@@ -103,5 +103,12 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-model/*
-input/*
+model/
+input/
+input_author/
+caffe/
+caffe_old/
+!caffe/empty.md
+!caffe_old/empty.md
+!model/empty.md
+!input/face.png
