@@ -50,10 +50,17 @@ for imIdx, imName in enumerate(imNames):
 
     # prepare the image, limit image size for memory
     height, width = imi.size
-    if height > width and height > 450:
-        imi = imi.resize((450, int(450 * width/height)))
-    elif width >= height and width > 450:
-        imi = imi.resize((int(450 * height/width), 450))
+    if height > width:
+        if height > 450:
+            imi = imi.resize((450, int(450 * width/height)))
+        #elif width < 300:
+        #    imi = imi.resize((int(300 * height/width), 300))
+    elif width >= height:
+        if width > 450:
+            imi = imi.resize((int(450 * height/width), 450))
+        #elif height < 300:
+        #    imi = imi.resize((300, int(300 * width/height)))
+    height, width = imi.size
     im = np.array(imi, dtype=np.float32)
     if len(im.shape) == 2:
         im = np.reshape(im, im.shape+(1,))
@@ -88,8 +95,8 @@ for imIdx, imName in enumerate(imNames):
     net2.blobs['data'].reshape(1, *D.shape)
     net2.blobs['data'].data[0,:,:,:] = D
     net2.forward()
-    S = net2.blobs['score'].data[0].argmax(axis=0)
-    S = Image.fromarray(S.astype(np.uint8))
+    mask = net2.blobs['score'].data[0].argmax(axis=0)
+    S = Image.fromarray(mask.astype(np.uint8))
     S.putpalette(palette)
 
     print 'close figure to process next image'
@@ -106,3 +113,26 @@ for imIdx, imName in enumerate(imNames):
 
     prob = np.exp(score) / np.sum(np.exp(score), 0)
     prob_max = np.max(prob, 0) # (0.28, 1)
+
+    # CRF
+    import pydensecrf.densecrf as dcrf
+    nlabels = 1
+    d = dcrf.DenseCRF2D(width, height, nlabels)
+    # set Unary
+    U = -np.log(prob_max+1e-6)
+    U = U.astype('float32')
+    U = U.reshape(nlabels, -1) # needs to be flat
+    U = np.ascontiguousarray(U)
+    d.setUnaryEnergy(U)
+    # set Pairwise
+    im = im.transpose((1,0,2)) # width, height
+    im = np.ascontiguousarray(im).astype('uint8')
+    d.addPairwiseGaussian(sxy=(3,3), compat=3)
+    d.addPairwiseBilateral(sxy=(80,80), srgb=(13,13,13), rgbim=im, compat=10)
+    Q = d.inference(5)
+    map = np.argmax(Q, axis=0).reshape((height,width))
+    print np.sum(map!=0)
+    plt.imshow(map.transpose((1,0)))
+    plt.show()
+
+    exit(0)
