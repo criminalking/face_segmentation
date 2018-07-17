@@ -10,4 +10,5 @@ We try different methods to complete face segmentation:
 - face_segment_yuval.py: On Face Segmentation, Face Swapping, and Face Perception.
 
 ## Dependencies
+Please download [caffe](http://caffe.berkeleyvision.org/), minimum version: 1.0 for face_segment_yuval.py, download [caffe-future](http://aaronsplace.co.uk/papers/jackson2016guided/index.html) for face_segment_part.py
 
