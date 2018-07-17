@@ -108,6 +108,7 @@ input/*
 
 !model/empty.md
 !input/face.png
+!input/landmarks.txt
 
 input_author/
 caffe/
