@@ -49,18 +49,18 @@ for imIdx, imName in enumerate(imNames):
     print imName
 
     # prepare the image, limit image size for memory
-    height, width = imi.size
-    if height > width:
-        if height > 450:
-            imi = imi.resize((450, int(450 * width/height)))
-        #elif width < 300:
-        #    imi = imi.resize((int(300 * height/width), 300))
-    elif width >= height:
+    width, height = imi.size
+    if width > height:
         if width > 450:
-            imi = imi.resize((int(450 * height/width), 450))
+            imi = imi.resize((450, int(450 * height/width)))
         #elif height < 300:
-        #    imi = imi.resize((300, int(300 * width/height)))
-    height, width = imi.size
+        #    imi = imi.resize((int(300 * width/height), 300))
+    else:
+        if height > 450:
+            imi = imi.resize((int(450 * width/height), 450))
+        #elif width < 300:
+        #    imi = imi.resize((300, int(300 * height/width)))
+    width, height = imi.size
     im = np.array(imi, dtype=np.float32)
     if len(im.shape) == 2:
         im = np.reshape(im, im.shape+(1,))
@@ -101,38 +101,34 @@ for imIdx, imName in enumerate(imNames):
 
     print 'close figure to process next image'
     fig = plt.figure()
-    ax1 = fig.add_subplot(121)
-    ax2 = fig.add_subplot(122)
+    ax1 = fig.add_subplot(131)
+    ax2 = fig.add_subplot(132)
+    ax3 = fig.add_subplot(133)
     ax1.imshow(imi)
     ax1.scatter(Q[:,1], Q[:,0], c='r', s=20)
     ax2.imshow(S)
-    #plt.show()
 
     # transfer score to probability with softmax for later unary term
     score = net2.blobs['score'].data[0]
 
-    prob = np.exp(score) / np.sum(np.exp(score), 0)
-    prob_max = np.max(prob, 0) # (0.28, 1)
+    prob = np.exp(score) / np.sum(np.exp(score), 0) # (nlabels, height, width)
+    #prob_max = np.max(prob, 0) # (0.28, 1)
 
     # CRF
     import pydensecrf.densecrf as dcrf
-    nlabels = 1
+    nlabels = prob.shape[0]
     d = dcrf.DenseCRF2D(width, height, nlabels)
     # set Unary
-    U = -np.log(prob_max+1e-6)
+    U = -np.log(prob+1e-6)
     U = U.astype('float32')
     U = U.reshape(nlabels, -1) # needs to be flat
     U = np.ascontiguousarray(U)
     d.setUnaryEnergy(U)
     # set Pairwise
-    im = im.transpose((1,0,2)) # width, height
     im = np.ascontiguousarray(im).astype('uint8')
     d.addPairwiseGaussian(sxy=(3,3), compat=3)
-    d.addPairwiseBilateral(sxy=(80,80), srgb=(13,13,13), rgbim=im, compat=10)
-    Q = d.inference(5)
+    d.addPairwiseBilateral(sxy=(50,50), srgb=(20,20,20), rgbim=im, compat=10)
+    Q = d.inference(20)
     map = np.argmax(Q, axis=0).reshape((height,width))
-    print np.sum(map!=0)
-    plt.imshow(map.transpose((1,0)))
+    ax3.imshow(map)
     plt.show()
-
-    exit(0)
