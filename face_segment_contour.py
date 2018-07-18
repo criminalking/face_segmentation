@@ -1,6 +1,4 @@
-"""This file is used to generate contour with landmarks
-"""
-
+#!/usr/bin/env python
 import argparse
 from scipy.spatial import ConvexHull
 import numpy as np
@@ -36,9 +34,9 @@ def generate_contour(points):
 
 
 def show_image(points, hull, image):
-    #plt.plot(points[:,0], points[:,1], 'o')
-    #for simplex in hull.simplices:
-    #    plt.plot(points[simplex, 0], points[simplex, 1], 'k-')
+    plt.plot(points[:,0], points[:,1], 'o')
+    for simplex in hull.simplices:
+        plt.plot(points[simplex, 0], points[simplex, 1], 'k-')
     # We could also have directly used the vertices of the hull,
     # which for 2-D are guaranteed to be in counterclockwise order:
     #plt.plot(points[hull.vertices,0], points[hull.vertices,1], 'r--', lw=2)
@@ -47,9 +45,10 @@ def show_image(points, hull, image):
     plt.fill(points[hull.vertices,0], points[hull.vertices,1], 'r')
     #plt.xlim([0, width])
     #plt.ylim([0, height])
-    #plt.axis('off')
+    plt.axis('off')
     plt.show()
     plt.savefig('contour.png')
+
 
 def main(args):
     landmarks_file = args.landmarks
@@ -64,9 +63,10 @@ def main(args):
     hull = generate_contour(landmarks)
     show_image(landmarks, hull, im)
 
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=
-                                 'Generate contour of landmarks.')
+                                     'Face segmentation with landmarks.')
     parser.add_argument('--landmarks',
         default='input/landmarks.txt',
         type=str, help='path to landmarks file')

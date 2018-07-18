@@ -13,9 +13,15 @@ We try different methods to complete face segmentation:
 ## Dependencies
 Please download [caffe](http://caffe.berkeleyvision.org/), minimum version: 1.0 for face_segment_yuval.py, download [caffe-future](http://aaronsplace.co.uk/papers/jackson2016guided/index.html) for face_segment_part.py
 
+## Results
+- face_segment_part: ![Alt text](images/face_segment_part.png)
+- face_segment_yuval: ![Alt text](images/face_segment_yuval.png)
+- face_segment_contour: ![Alt text](images/face_segment_contour.png)
+
 ## TODO
 - [ ] Add landmark detection in face_segment_contour.py
 - [x] Contour -> segment
-- [ ] Unify code style
+- [x] Unify code style
 - [ ] Improve CRF results
-- [ ] Add example images to README
+- [x] Add example images to README
+- [ ] Compare results of all methods
