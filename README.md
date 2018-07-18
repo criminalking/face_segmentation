@@ -14,9 +14,13 @@ We try different methods to complete face segmentation:
 Please download [caffe](http://caffe.berkeleyvision.org/), minimum version: 1.0 for face_segment_yuval.py, download [caffe-future](http://aaronsplace.co.uk/papers/jackson2016guided/index.html) for face_segment_part.py
 
 ## Results
-- face_segment_part: ![Alt text](images/face_segment_part.png)
-- face_segment_yuval: ![Alt text](images/face_segment_yuval.png)
-- face_segment_contour: ![Alt text](images/face_segment_contour.png)
+- face_segment_part:
+<img src="images/face_segment_part.png" width="500">
+<img src="images/face_segment_part2.png" width="500">
+- face_segment_yuval:
+<img src="images/face_segment_yuval.png" width="500">
+- face_segment_contour:
+<img src="images/face_segment_contour.png" width="500">
 
 ## TODO
 - [ ] Add landmark detection in face_segment_contour.py
