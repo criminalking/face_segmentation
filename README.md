@@ -15,7 +15,7 @@ Please download [caffe](http://caffe.berkeleyvision.org/), minimum version: 1.0 
 
 ## TODO
 - [ ] Add landmark detection in face_segment_contour.py
-- [ ] Contour -> segment
+- [x] Contour -> segment
 - [ ] Unify code style
 - [ ] Improve CRF results
 - [ ] Add example images to README

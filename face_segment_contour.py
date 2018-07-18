@@ -31,33 +31,38 @@ def generate_contour(points):
     Args:
         points (numpy array, N*2): Landmarks points.
     """
-    #points = points / np.max(points, 0) - 0.01
     hull = ConvexHull(points)
+    return hull
 
-    plt.plot(points[:,0], points[:,1], 'o')
-    for simplex in hull.simplices:
-        plt.plot(points[simplex, 0], points[simplex, 1], 'k-')
+
+def show_image(points, hull, image):
+    #plt.plot(points[:,0], points[:,1], 'o')
+    #for simplex in hull.simplices:
+    #    plt.plot(points[simplex, 0], points[simplex, 1], 'k-')
     # We could also have directly used the vertices of the hull,
     # which for 2-D are guaranteed to be in counterclockwise order:
-    plt.plot(points[hull.vertices,0], points[hull.vertices,1], 'r--', lw=2)
-    plt.plot(points[hull.vertices[0],0], points[hull.vertices[0],1], 'ro')
-    plt.axis('scaled')
+    #plt.plot(points[hull.vertices,0], points[hull.vertices,1], 'r--', lw=2)
+    width, height = image.size
+    plt.axis('equal')
+    plt.fill(points[hull.vertices,0], points[hull.vertices,1], 'r')
+    #plt.xlim([0, width])
+    #plt.ylim([0, height])
+    #plt.axis('off')
     plt.show()
-    #plt.savefig('contour.png', bbox_inches='tight')
-
+    plt.savefig('contour.png')
 
 def main(args):
     landmarks_file = args.landmarks
     image_file = args.image
     im = Image.open(image_file)
-    height, width = im.size
+    width, height = im.size
     landmarks = load_landmarks(landmarks_file)
     landmarks[:,1] = height - landmarks[:,1]
     # select contour points
     #contour_points = get_contour_side(landmarks)
     # generate a contour curve with contour points
-    generate_contour(landmarks)
-
+    hull = generate_contour(landmarks)
+    show_image(landmarks, hull, im)
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=
@@ -66,8 +71,8 @@ if __name__=="__main__":
         default='input/landmarks.txt',
         type=str, help='path to landmarks file')
     parser.add_argument('--image',
-        default='input/face.png',
-        type=str, help='path to landmarks file')
+        default='input/image04250.jpg',
+        type=str, help='path to image file')
     args = parser.parse_args()
 
     main(args)
