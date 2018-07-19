@@ -10,8 +10,8 @@ import string
 import matplotlib.pyplot as plt
 from os import listdir
 import argparse
-import pydensecrf.densecrf as dcrf
 
+from util import read_list, CRF, show_result
 
 def get_palette():
     """Generate the colourmap for the segmentation mask."""
@@ -27,25 +27,6 @@ def get_palette():
     palette = palette.astype('uint8').tostring()
 
     return palette
-
-
-def CRF(prob, im):
-    height, width, _ = im.shape
-    nlabels = prob.shape[0]
-    d = dcrf.DenseCRF2D(width, height, nlabels)
-    # set Unary
-    U = -np.log(prob+1e-6)
-    U = U.astype('float32')
-    U = U.reshape(nlabels, -1) # needs to be flat
-    U = np.ascontiguousarray(U)
-    d.setUnaryEnergy(U)
-    # set Pairwise
-    im = np.ascontiguousarray(im).astype('uint8')
-    d.addPairwiseGaussian(sxy=(3,3), compat=3)
-    d.addPairwiseBilateral(sxy=(50,50), srgb=(20,20,20), rgbim=im, compat=10)
-    Q = d.inference(20)
-    map = np.argmax(Q, axis=0).reshape((height,width))
-    return map
 
 
 def main(args):
@@ -64,16 +45,12 @@ def main(args):
     f = scipy.io.loadmat('gaus.mat')['f']
 
     # load image names
-    imNames = [ line.rstrip() for line in listdir(args.input) ]
+    image_paths = read_list(args.image_list)
 
     # segment and measure performance
-    for imIdx, imName in enumerate(imNames):
-        if imName[-3:] == 'jpg':
-            imName = imName[:-4]
-            imi = Image.open(args.input + imName + '.jpg')
-        elif imName[-3:] == 'png':
-            imName = imName[:-4]
-            imi = Image.open(args.input + imName + '.png')
+    for imName in image_paths:
+        if imName[-3:] == 'jpg' or imName[-3:] == 'png':
+            imi = Image.open(imName)
         else:
             continue
         print imName
@@ -130,13 +107,6 @@ def main(args):
         S.putpalette(palette)
 
         print 'close figure to process next image'
-        fig = plt.figure()
-        ax1 = fig.add_subplot(131)
-        ax2 = fig.add_subplot(132)
-        ax3 = fig.add_subplot(133)
-        ax1.imshow(imi)
-        #ax1.scatter(Q[:,1], Q[:,0], c='r', s=20)
-        ax2.imshow(S)
 
         # transfer score to probability with softmax for later unary term
         score = net2.blobs['score'].data[0]
@@ -144,15 +114,17 @@ def main(args):
         #prob_max = np.max(prob, 0) # (0.28, 1)
 
         # CRF
-        map = CRF(prob, im)
-        ax3.imshow(map)
-        plt.show()
+        map = CRF(prob, im) # final label
+
+        # show result
+        show_result(imi, S, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi)
+        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi)
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=
                                      'Face part segmentation.')
-    parser.add_argument('--input', default='input/', type=str,
+    parser.add_argument('--image_list', default='input/list.txt', type=str,
                         help='path to input images')
     args = parser.parse_args()
     main(args)

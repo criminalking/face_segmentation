@@ -1,78 +1,44 @@
 #!/usr/bin/env python
 import argparse
 from scipy.spatial import ConvexHull
+from skimage import draw
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
-def load_landmarks(filename):
-    landmarks = np.zeros((68, 2))
-    try:
-        with open(filename, 'r') as f:
-            data = f.read()
-    except OSError:
-        print('cannot open', filename)
-
-    lines = data.splitlines()
-    for index, line in enumerate(lines):
-        if line == '':
-            continue
-        elem = line.split(',')
-        landmarks[index][0] = float(elem[0])
-        landmarks[index][1] = float(elem[1])
-    return landmarks
-
-
-def generate_contour(points):
-    """Find convex hull of points
-
-    Args:
-        points (numpy array, N*2): Landmarks points.
-    """
-    hull = ConvexHull(points)
-    return hull
-
-
-def show_image(points, hull, image):
-    plt.plot(points[:,0], points[:,1], 'o')
-    for simplex in hull.simplices:
-        plt.plot(points[simplex, 0], points[simplex, 1], 'k-')
-    # We could also have directly used the vertices of the hull,
-    # which for 2-D are guaranteed to be in counterclockwise order:
-    #plt.plot(points[hull.vertices,0], points[hull.vertices,1], 'r--', lw=2)
-    width, height = image.size
-    plt.axis('equal')
-    plt.fill(points[hull.vertices,0], points[hull.vertices,1], 'r')
-    #plt.xlim([0, width])
-    #plt.ylim([0, height])
-    plt.axis('off')
-    plt.show()
-    plt.savefig('contour.png')
-
+from util import read_list, load_landmarks, show_result
 
 def main(args):
-    landmarks_file = args.landmarks
-    image_file = args.image
-    im = Image.open(image_file)
-    width, height = im.size
-    landmarks = load_landmarks(landmarks_file)
-    landmarks[:,1] = height - landmarks[:,1]
-    # select contour points
-    #contour_points = get_contour_side(landmarks)
-    # generate a contour curve with contour points
-    hull = generate_contour(landmarks)
-    show_image(landmarks, hull, im)
+    image_paths = read_list(args.image_list)
+    for image_file in image_paths:
+        # landmarks_file should have the same prefix as image_file
+        landmarks_file = image_file[:-3] + 'txt'
+        im = Image.open(image_file)
+        width, height = im.size
+        landmarks = load_landmarks(landmarks_file)
+        landmarks[:,1] = height - landmarks[:,1]
+        # select contour points
+        #contour_points = get_contour_side(landmarks)
+        # generate a contour curve with contour points
+        hull = ConvexHull(landmarks)
+        # draw landmarks
+        lm = np.array(im)
+        for i in range(landmarks.shape[0]):
+            rr, cc = draw.circle(height-landmarks[i,1].astype('int32'), landmarks[i,0].astype('int32'), 5)
+            lm[rr, cc, :] = np.array((255, 0, 0))
+        # create mask
+        mask = np.zeros((height, width))
+        rr, cc = draw.polygon(height-landmarks[hull.vertices,1], landmarks[hull.vertices,0], mask.shape)
+        mask[rr,cc] = 1
+        show_result(lm, mask, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * im)
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description=
                                      'Face segmentation with landmarks.')
-    parser.add_argument('--landmarks',
-        default='input/landmarks.txt',
-        type=str, help='path to landmarks file')
-    parser.add_argument('--image',
-        default='input/image04250.jpg',
-        type=str, help='path to image file')
+    parser.add_argument('--image_list',
+                        default='input/list.txt',
+                        type=str, help='path to image file')
     args = parser.parse_args()
 
     main(args)
