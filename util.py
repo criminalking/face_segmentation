@@ -13,6 +13,7 @@ def read_list(filename):
             img_list.append(img_path[0])
     return img_list
 
+
 def crop_image(image):
     cropped_image = image
     return cropped_image

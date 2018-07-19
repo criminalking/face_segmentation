@@ -34,10 +34,10 @@ def main(args):
 
         # run net and take argmax for prediction
         net.forward()
-        out = net.blobs['score'].data[0].argmax(axis=0)
+        mask = net.blobs['score'].data[0].argmax(axis=0)
 
-        im_seg = im * np.tile((out!=0)[:,:,np.newaxis], (1,1,3))
-        show_result(im, im_seg, out)
+        im_seg = im * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
+        show_result(im, mask, im_seg)
 
 
 if __name__=="__main__":
@@ -49,7 +49,7 @@ if __name__=="__main__":
     parser.add_argument('--prototxt',
         default='data/face_seg_fcn8s_deploy.prototxt',
         type=str, help='path to prototxt')
-    parser.add_argument('--caffemodel',
+    Parser.add_argument('--caffemodel',
         default='data/face_seg_fcn8s.caffemodel',
         type=str, help='path to caffemodel')
     args = parser.parse_args()

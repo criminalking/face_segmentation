@@ -107,9 +107,10 @@ model/*
 input/*
 
 !model/empty.md
-!input/face.png
-!input/landmarks.txt
+!input/empty.md
+images/crop.py
 
 input_author/
 caffe/
 caffe_old/
+faceseg/

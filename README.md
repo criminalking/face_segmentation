@@ -20,14 +20,15 @@ pip install -r requirements.txt
 
 
 ## Results
-- face_segment_part:
-No crf:
-<img src="images/face_segment_part_nocrf.png" width="500">
-Add crf:
-<img src="images/face_segment_part_crf.png" width="500">
-No crf:
-<img src="images/face_segment_part2_nocrf.png" width="500">
-Add crf:
+- face_segment_part:  
+
+No crf:  
+<img src="images/face_segment_part_nocrf.png" width="500">  
+Add crf:  
+<img src="images/face_segment_part_crf.png" width="500">  
+No crf:  
+<img src="images/face_segment_part2_nocrf.png" width="500">  
+Add crf:  
 <img src="images/face_segment_part2_crf.png" width="500">
 
 - face_segment_yuval:
@@ -40,6 +41,7 @@ Add crf:
 
 ## TODO
 - [ ] Add landmark detection in face_segment_contour.py
+- [ ] Add image cropping
 - [x] Contour -> segment
 - [x] Unify code style
 - [ ] Improve CRF results
