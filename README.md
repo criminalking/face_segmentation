@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 
 ## Results
-- face_segment_part:  
+- face_segment_part:
 
 No crf:  
 <img src="images/face_segment_part_nocrf.png" width="500">  
@@ -32,8 +32,13 @@ Add crf:
 <img src="images/face_segment_part2_crf.png" width="500">
 
 - face_segment_yuval:
+
+Model face_seg_fcn8s:  
 <img src="images/face_segment_yuval.png" width="500">
-<img src="images/face_segment_yuval2.png" width="500">
+<img src="images/face_segment_yuval2.png" width="500">  
+Model face_seg_fcn8s_300_no_aug:  
+<img src="images/face_segment_yuval3.png" width="500">
+<img src="images/face_segment_yuval4.png" width="500">
 
 - face_segment_contour:
 <img src="images/face_segment_contour.png" width="500">

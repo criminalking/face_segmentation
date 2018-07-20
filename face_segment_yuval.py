@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import caffe
 import argparse
 
-from util import read_list, show_result
+from util import *
 
 
 def main(args):
@@ -15,7 +15,13 @@ def main(args):
     for path in image_paths:
         # load image, switch to BGR, subtract mean, and make dims C x H x W for Caffe
         im = Image.open(path)
-        im = im.resize((500, 500))
+
+        # use landmarks to crop image
+        landmark_file = path[:-3] + 'txt'
+        landmarks = load_landmarks(landmark_file)
+        im = crop_image_min(landmarks, im)
+
+        im = im.resize((300, 300))
         in_ = np.array(im, dtype=np.float32)
         in_ = in_[:,:,::-1]
         in_ -= np.array((104.00698793,116.66876762,122.67891434))
@@ -34,10 +40,10 @@ def main(args):
 
         # run net and take argmax for prediction
         net.forward()
-        mask = net.blobs['score'].data[0].argmax(axis=0)
+        out = net.blobs['score'].data[0].argmax(axis=0)
 
-        im_seg = im * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
-        show_result(im, mask, im_seg)
+        im_seg = im * np.tile((out!=0)[:,:,np.newaxis], (1,1,3))
+        show_result(im, out, im_seg)
 
 
 if __name__=="__main__":
@@ -49,7 +55,7 @@ if __name__=="__main__":
     parser.add_argument('--prototxt',
         default='data/face_seg_fcn8s_deploy.prototxt',
         type=str, help='path to prototxt')
-    Parser.add_argument('--caffemodel',
+    parser.add_argument('--caffemodel',
         default='data/face_seg_fcn8s.caffemodel',
         type=str, help='path to caffemodel')
     args = parser.parse_args()

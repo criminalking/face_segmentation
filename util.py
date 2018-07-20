@@ -14,9 +14,76 @@ def read_list(filename):
     return img_list
 
 
-def crop_image(image):
-    cropped_image = image
-    return cropped_image
+def crop_image(landmarks, image):
+    """Crop image
+
+    Args:
+        landmarks(numpy array, 68*2): Landmarks.
+        image(PIL.Image): Input image.
+    Return: Cropped image.
+    Note:
+        Yuval used this cropping method.
+
+    """
+    im_width, im_height = image.size
+
+    landmarks = landmarks.astype('int32')
+    minx, miny = np.min(landmarks, 0)
+    maxx, maxy = np.max(landmarks, 0)
+    width, height = maxx - minx + 1, maxy - miny + 1
+    centerx, centery = (minx + maxx) / 2, (miny + maxy) / 2
+    avgx = int(round(np.sum(landmarks[:,0]) * 1.0 / landmarks.shape[0]))
+    avgy = int(round(np.sum(landmarks[:,1]) * 1.0 / landmarks.shape[0]))
+    devx, devy = centerx - avgx, centery - avgy
+    dleft = int(round(0.1 * width)) + abs(min(devx, 0))
+    dtop = int(round(height * (max(float(width) / height, 1.0) * 2 - 1))) \
+           + abs(min(devy, 0))
+    dright = int(round(0.1 * width)) + abs(max(devx, 0))
+    dbottom = int(round(0.1 * height)) + abs(max(devy, 0))
+
+    minx, miny = max(0, minx - dleft), max(0, miny - dtop)
+    maxx = min(im_width - 1, maxx + dright)
+    maxy = min(im_height - 1, maxy + dbottom)
+
+    sq_width = max(maxx - minx + 1, maxy - miny + 1)
+    centerx, centery = (minx + maxx) / 2, (miny + maxy) / 2
+    minx = max(0, centerx - (sq_width - 1) / 2)
+    miny = max(0, centery - (sq_width - 1) / 2)
+    maxx = min(im_width - 1, minx + sq_width - 1)
+    maxy = min(im_height - 1, miny + sq_width - 1)
+
+    return image.crop((minx, miny, maxx, maxy))
+
+
+def crop_image_min(landmarks, image):
+    im_width, im_height = image.size
+    landmarks = landmarks.astype('int32')
+    margin = 10
+    minx, miny = np.min(landmarks, 0) - margin
+    minx, miny = max(minx, 0), max(miny, 0)
+    maxx, maxy = np.max(landmarks, 0) + margin
+    maxx, maxy = min(maxx, im_width-1), min(maxy, im_height-1)
+    centerx, centery = (minx + maxx) / 2.0, (miny + maxy) / 2.0
+    if maxx - minx > maxy - miny:
+        length = min(maxx - minx, im_height, im_width)
+        topx = max(0, minx)
+        if centery < length / 2.0:
+            topy = 0
+        elif im_width - centery < length / 2.0:
+            topy = im_width - length
+        else:
+            topy = centery - length / 2.0
+    else:
+        length = min(maxy - miny, im_height, im_width)
+        topy = max(0, miny)
+        if centerx < length / 2.0:
+            topx = 0
+        elif im_height - centerx < length / 2.0:
+            topx = im_height - length
+        else:
+            topx = centerx - length / 2.0
+    minx, miny = int(topx), int(topy)
+    return image.crop((minx, miny, minx+length, miny+length))
 
 
 def load_landmarks(filename, number=68):
@@ -73,7 +140,7 @@ def CRF(prob, im):
     # set Pairwise
     im = np.ascontiguousarray(im).astype('uint8')
     d.addPairwiseGaussian(sxy=(3,3), compat=3)
-    d.addPairwiseBilateral(sxy=(50,50), srgb=(20,20,20), rgbim=im, compat=10)
-    Q = d.inference(20)
+    d.addPairwiseBilateral(sxy=(80,80), srgb=(13,13,13), rgbim=im, compat=10)
+    Q = d.inference(5)
     map = np.argmax(Q, axis=0).reshape((height,width))
     return map

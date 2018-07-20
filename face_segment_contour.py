@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from util import read_list, load_landmarks, show_result
+from util import read_list, load_landmarks, show_result, CRF
 
 def main(args):
     image_paths = read_list(args.image_list)
@@ -31,6 +31,14 @@ def main(args):
         rr, cc = draw.polygon(height-landmarks[hull.vertices,1], landmarks[hull.vertices,0], mask.shape)
         mask[rr,cc] = 1
         show_result(lm, mask, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * im)
+
+        # add CRF
+        prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 +
+                               mask[np.newaxis, :, :]*0.1,
+                               mask[np.newaxis, :, :]*0.9 +
+                               (1-mask)[np.newaxis, :, :]*0.1), axis=0)
+        map = CRF(prob, np.array(im))
+        show_result(im, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * im)
 
 
 if __name__=="__main__":
