@@ -16,12 +16,20 @@ def main(args):
         # load image, switch to BGR, subtract mean, and make dims C x H x W for Caffe
         im = Image.open(path)
 
-        # use landmarks to crop image
-        landmark_file = path[:-3] + 'txt'
-        landmarks = load_landmarks(landmark_file)
-        im = crop_image_min(landmarks, im)
+        if args.crop != 'no':
+            # use landmarks to crop image
+            landmark_file = path[:-3] + 'txt'
+            landmarks = load_landmarks(landmark_file)
+            if args.crop == 'middle':
+                im = crop_image_middle(landmarks, im)
+            else:
+                im = crop_image_min(landmarks, im)
+                args.crop = 'min'
 
-        im = im.resize((300, 300))
+        if '300' in args.prototxt:
+            im = im.resize((300, 300))
+        else:
+            im = im.resize((500, 500))
         in_ = np.array(im, dtype=np.float32)
         in_ = in_[:,:,::-1]
         in_ -= np.array((104.00698793,116.66876762,122.67891434))
@@ -43,21 +51,28 @@ def main(args):
         out = net.blobs['score'].data[0].argmax(axis=0)
 
         im_seg = im * np.tile((out!=0)[:,:,np.newaxis], (1,1,3))
-        show_result(im, out, im_seg)
+
+        path = path[:-1] if path[-1] == '/' else path
+
+        if '300' in args.prototxt:
+            image_name = path[path.rindex('/')+1:-4] + '_yuval_300_' + args.crop + '.png'
+        else:
+            image_name = path[path.rindex('/')+1:-4] + '_yuval_' + args.crop + '.png'
+        show_result(im, out, im_seg, save=True, filename='images/'+image_name)
 
 
 if __name__=="__main__":
-    parser = argparse.ArgumentParser(description=
-                                     'Face segmentation of yuval.')
-    parser.add_argument('--image_list',
-        default='data/images/list.txt',
-        type=str, help='path to image')
+    parser = argparse.ArgumentParser(description='Face segmentation of yuval.')
+    parser.add_argument('--image_list', default='data/images/list.txt',
+                        type=str, help='path to image')
     parser.add_argument('--prototxt',
-        default='data/face_seg_fcn8s_deploy.prototxt',
-        type=str, help='path to prototxt')
+                        default='data/face_seg_fcn8s_300_deploy.prototxt',
+                        type=str, help='path to prototxt')
     parser.add_argument('--caffemodel',
-        default='data/face_seg_fcn8s.caffemodel',
-        type=str, help='path to caffemodel')
+                        default='data/face_seg_fcn8s_300.caffemodel',
+                        type=str, help='path to caffemodel')
+    parser.add_argument('--crop', choices=['min', 'middle', 'no'],
+                        help='choose min/middle/no crop')
     args = parser.parse_args()
 
     main(args)

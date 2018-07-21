@@ -23,26 +23,27 @@ pip install -r requirements.txt
 - face_segment_part:
 
 No crf:  
-<img src="images/face_segment_part_nocrf.png" width="500">  
+<img src="images/image04250_part_nocrf_min.png" width="500">  
 Add crf:  
-<img src="images/face_segment_part_crf.png" width="500">  
+<img src="images/image04250_part_crf_min.png" width="500">  
 No crf:  
-<img src="images/face_segment_part2_nocrf.png" width="500">  
+<img src="images/image00091_part_nocrf_min.png" width="500">  
 Add crf:  
-<img src="images/face_segment_part2_crf.png" width="500">
+<img src="images/image00091_part_crf_min.png" width="500">
 
 - face_segment_yuval:
 
-Model face_seg_fcn8s:  
-<img src="images/face_segment_yuval.png" width="500">
-<img src="images/face_segment_yuval2.png" width="500">  
-Model face_seg_fcn8s_300_no_aug:  
-<img src="images/face_segment_yuval3.png" width="500">
-<img src="images/face_segment_yuval4.png" width="500">
+Model face_seg_fcn8s(size:500x500):  
+<img src="images/image04250_yuval_min.png" width="500">
+<img src="images/image00091_yuval_min.png" width="500">  
+Model face_seg_fcn8s_300_no_aug(size:300x300):  
+<img src="images/image04250_yuval_300_min.png" width="500">
+<img src="images/image00091_yuval_300_min.png" width="500">  
+Second model has better result.
 
 - face_segment_contour:
-<img src="images/face_segment_contour.png" width="500">
-<img src="images/face_segment_contour2.png" width="500">
+<img src="images/image04250_contour.png" width="500">
+<img src="images/image00091_contour.png" width="500">
 
 ## TODO
 - [ ] Add landmark detection in face_segment_contour.py

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from os import listdir
 import argparse
 
-from util import read_list, CRF, show_result
+from util import *
 
 def get_palette():
     """Generate the colourmap for the segmentation mask."""
@@ -55,6 +55,14 @@ def main(args):
             continue
         print imName
 
+        if args.crop != 'no':
+            landmark_file = imName[:-3] + 'txt'
+            landmarks = load_landmarks(landmark_file)
+            if args.crop == 'middle':
+                imi = crop_image_middle(landmarks, imi)
+            else:
+                imi = crop_image_min(landmarks, imi)
+                args.crop = 'min'
         # prepare the image, limit image size for memory
         width, height = imi.size
         if width > height:
@@ -117,8 +125,13 @@ def main(args):
         map = CRF(prob, im) # final label
 
         # show result
-        show_result(imi, S, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi)
-        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi)
+        imName = imName[:-1] if imName[-1] == '/' else imName
+        image_name = imName[imName.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
+        show_result(imi, S, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
+                    save=True, filename='images/'+image_name)
+        image_name = imName[imName.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
+        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi,
+                    save=True, filename='images/'+image_name)
 
 
 if __name__=="__main__":
@@ -126,5 +139,7 @@ if __name__=="__main__":
                                      'Face part segmentation.')
     parser.add_argument('--image_list', default='input/list.txt', type=str,
                         help='path to input images')
+    parser.add_argument('--crop', choices=['min', 'middle', 'no'],
+                        help='choose min/middle/no crop')
     args = parser.parse_args()
     main(args)

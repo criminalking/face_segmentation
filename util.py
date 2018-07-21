@@ -14,7 +14,7 @@ def read_list(filename):
     return img_list
 
 
-def crop_image(landmarks, image):
+def crop_image_middle(landmarks, image):
     """Crop image
 
     Args:
@@ -58,7 +58,7 @@ def crop_image(landmarks, image):
 def crop_image_min(landmarks, image):
     im_width, im_height = image.size
     landmarks = landmarks.astype('int32')
-    margin = 10
+    margin = 20
     minx, miny = np.min(landmarks, 0) - margin
     minx, miny = max(minx, 0), max(miny, 0)
     maxx, maxy = np.max(landmarks, 0) + margin
@@ -112,7 +112,7 @@ def load_landmarks(filename, number=68):
     return landmarks
 
 
-def show_result(image, mask, seg, save=False):
+def show_result(image, mask, seg, save=False, filename='fig.png'):
     fig = plt.figure()
     ax1 = fig.add_subplot(131)
     ax2 = fig.add_subplot(132)
@@ -120,11 +120,13 @@ def show_result(image, mask, seg, save=False):
     ax1.imshow(image)
     ax2.imshow(mask)
     ax3.imshow(seg)
-    plt.show()
 
     if save:
-        plt.imsave('seg.png', seg)
-        plt.imsave('mask.png', mask)
+        #plt.imsave('seg.png', seg)
+        #plt.imsave('mask.png', mask)
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
 def CRF(prob, im):
@@ -139,8 +141,8 @@ def CRF(prob, im):
     d.setUnaryEnergy(U)
     # set Pairwise
     im = np.ascontiguousarray(im).astype('uint8')
-    d.addPairwiseGaussian(sxy=(3,3), compat=3)
-    d.addPairwiseBilateral(sxy=(80,80), srgb=(13,13,13), rgbim=im, compat=10)
-    Q = d.inference(5)
+    d.addPairwiseGaussian(sxy=(5,5), compat=3)
+    d.addPairwiseBilateral(sxy=(50,50), srgb=(20,20,20), rgbim=im, compat=10)
+    Q = d.inference(10)
     map = np.argmax(Q, axis=0).reshape((height,width))
     return map
