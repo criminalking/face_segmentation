@@ -2,3 +2,7 @@ numpy
 scikit-image
 protobuf
 pydensecrf
+dlib>=19.5.0
+torch
+torchvision
+enum34

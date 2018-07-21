@@ -5,12 +5,14 @@ import caffe
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
+from skimage import draw
 import scipy.io
 import string
 import matplotlib.pyplot as plt
 from os import listdir
 import argparse
 
+from face_alignment.api import FaceAlignment, LandmarksType, NetworkSize
 from util import *
 
 def get_palette():
@@ -55,14 +57,17 @@ def main(args):
             continue
         print imName
 
-        if args.crop != 'no':
-            landmark_file = imName[:-3] + 'txt'
-            landmarks = load_landmarks(landmark_file)
-            if args.crop == 'middle':
-                imi = crop_image_middle(landmarks, imi)
-            else:
-                imi = crop_image_min(landmarks, imi)
-                args.crop = 'min'
+        # use 2D-FAN detect landmarks
+        fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
+                           flip_input=False, use_cnn_face_detector=True)
+        landmarks = fa.get_landmarks(np.array(imi))[-1]
+        landmarks = landmarks.astype('uint16')
+
+        if args.crop == 'middle':
+            imi, landmarks = crop_image_middle(landmarks, imi)
+        elif args.crop == 'min':
+            imi, landmarks = crop_image_min(landmarks, imi)
+
         # prepare the image, limit image size for memory
         width, height = imi.size
         if width > height:
@@ -83,26 +88,16 @@ def main(args):
         im = im[:,:,::-1] # RGB to BGR
 
         # trained with different means (accidently)
-        lanIm = im - np.array((122.67,104.00,116.67))
         segIm = im - np.array((87.86,101.92,133.01))
-        lanIm = lanIm.transpose((2,0,1))
         segIm = segIm.transpose((2,0,1))
 
-        # Forward through the landmark network
-        net1.blobs['data'].reshape(1, *lanIm.shape)
-        net1.blobs['data'].data[0,:,:,:] = lanIm
-        net1.forward()
-        H = net1.blobs['score'].data[0]
-
         # Do some recovery of the points
-        C = np.zeros(H.shape, 'uint8') # cleaned up heatmaps
+        C = np.zeros((landmarks.shape[0], height, width), 'uint8') # cleaned up heatmaps
         C = np.pad(C, ((0,0), (120,120), (120,120)), 'constant')
-        Q = np.zeros((68,2), 'float') # detected landmarks
+
+        landmarks[:,0], landmarks[:,1] = landmarks[:,1].copy(), landmarks[:,0].copy()
         for k in range(0,68):
-            ij = np.unravel_index(H[k,:,:].argmax(), H[k,:,:].shape)
-            Q[k,0] = ij[0]
-            Q[k,1] = ij[1]
-            C[k,ij[0]+120-100:ij[0]+120+101,ij[1]+120-100:ij[1]+120+101] = f
+            C[k,landmarks[k,0]+120-100:landmarks[k,0]+120+101,landmarks[k,1]+120-100:landmarks[k,1]+120+101] = f
         C = C[:,120:-120,120:-120] * 0.5
 
         # Forward through the segmentation network
@@ -127,7 +122,7 @@ def main(args):
         # show result
         imName = imName[:-1] if imName[-1] == '/' else imName
         image_name = imName[imName.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
-        show_result(imi, S, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
+        show_result(imi, mask, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
                     save=False, filename='images/'+image_name)
         image_name = imName[imName.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi,

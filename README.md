@@ -5,7 +5,7 @@ We try different methods to complete face segmentation:
 - [On Face Segmentation, Face Swapping, and Face Perception](https://arxiv.org/abs/1704.06729). Original [codes and models](https://github.com/YuvalNirkin/face_segmentation).
 - Generate convex hull according to landmarks.
 
-Before using all three methods we detect landmarks and crop the image. We use [2D-FAN](https://github.com/1adrianb/2D-and-3D-face-alignment) to detect landmarks which works very well on large pose images. We also try different methods to crop the image.
+Before using all three methods we detect landmarks and crop the image. Instead of using landmarks detection network in `A CNN Cascade for Landmark Guided Semantic Part Segmentation` we use [2D-FAN](https://github.com/1adrianb/2D-and-3D-face-alignment) to detect landmarks which works very well on large pose images. We also try different methods to crop the image.
 
 
 ## Codes
@@ -15,7 +15,7 @@ Before using all three methods we detect landmarks and crop the image. We use [2
 
 
 ## Dependencies
-Please download [caffe](http://caffe.berkeleyvision.org/), minimum version: 1.0 for face_segment_yuval.py, download [caffe-future](http://aaronsplace.co.uk/papers/jackson2016guided/index.html) for face_segment_part.py
+Please download [caffe](http://caffe.berkeleyvision.org/)(minimum version: 1.0) for face_segment_yuval.py, download [caffe-future](http://aaronsplace.co.uk/papers/jackson2016guided/index.html) for face_segment_part.py
 
 Then run the following command in a terminal:
 ```
@@ -54,6 +54,8 @@ Add crf to second model:
 
 ## TODO
 - [ ] Add landmark detection
+- [ ] Modify probability computation in face_segment_yuval.py
+- [ ] Add speed test
 - [x] Add image cropping
 - [x] Contour -> segment
 - [x] Unify code style

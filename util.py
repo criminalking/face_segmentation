@@ -27,7 +27,7 @@ def crop_image_middle(landmarks, image):
     """
     im_width, im_height = image.size
 
-    landmarks = landmarks.astype('int32')
+    landmarks = landmarks.astype('uint16')
     minx, miny = np.min(landmarks, 0)
     maxx, maxy = np.max(landmarks, 0)
     width, height = maxx - minx + 1, maxy - miny + 1
@@ -52,12 +52,12 @@ def crop_image_middle(landmarks, image):
     maxx = min(im_width - 1, minx + sq_width - 1)
     maxy = min(im_height - 1, miny + sq_width - 1)
 
-    return image.crop((minx, miny, maxx, maxy))
+    return image.crop((minx, miny, maxx, maxy)), landmarks - np.array((minx, miny))
 
 
 def crop_image_min(landmarks, image):
     im_width, im_height = image.size
-    landmarks = landmarks.astype('int32')
+    landmarks = landmarks.astype('uint16')
     margin = 20
     minx, miny = np.min(landmarks, 0) - margin
     minx, miny = max(minx, 0), max(miny, 0)
@@ -83,7 +83,7 @@ def crop_image_min(landmarks, image):
         else:
             topx = centerx - length / 2.0
     minx, miny = int(topx), int(topy)
-    return image.crop((minx, miny, minx+length, miny+length))
+    return image.crop((minx, miny, minx+length, miny+length)), landmarks - np.array((minx, miny))
 
 
 def load_landmarks(filename, number=68):
