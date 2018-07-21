@@ -5,7 +5,6 @@ import caffe
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
-from skimage import draw
 import scipy.io
 import string
 import matplotlib.pyplot as plt
@@ -36,8 +35,8 @@ def main(args):
     caffe.set_device(0)
 
     # Load both networks
-    net1 = caffe.Net('model/net_landmarks.prototxt', \
-                     'model/params_landmarks.caffemodel', caffe.TEST)
+    #net1 = caffe.Net('model/net_landmarks.prototxt', \
+    #                 'model/params_landmarks.caffemodel', caffe.TEST)
     net2 = caffe.Net('model/net_segmentation.prototxt', \
                      'model/params_segmentation.caffemodel', caffe.TEST)
 
@@ -55,7 +54,6 @@ def main(args):
             imi = Image.open(imName)
         else:
             continue
-        print imName
 
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
@@ -123,10 +121,10 @@ def main(args):
         imName = imName[:-1] if imName[-1] == '/' else imName
         image_name = imName[imName.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
         show_result(imi, mask, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
-                    save=False, filename='images/'+image_name)
+                    save=True, filename='images/'+image_name)
         image_name = imName[imName.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi,
-                    save=False, filename='images/'+image_name)
+                    save=True, filename='images/'+image_name)
 
 
 if __name__=="__main__":
@@ -135,6 +133,6 @@ if __name__=="__main__":
     parser.add_argument('--image_list', default='input/list.txt', type=str,
                         help='path to input images')
     parser.add_argument('--crop', choices=['min', 'middle', 'no'],
-                        help='choose min/middle/no crop')
+                        default='min', help='choose min/middle/no crop')
     args = parser.parse_args()
     main(args)

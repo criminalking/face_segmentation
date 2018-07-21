@@ -6,19 +6,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from util import read_list, load_landmarks, show_result, CRF
+from face_alignment.api import FaceAlignment, LandmarksType, NetworkSize
+from util import read_list, show_result, CRF
 
 def main(args):
     image_paths = read_list(args.image_list)
     for path in image_paths:
-        # landmarks_file should have the same prefix as image_file
-        landmarks_file = path[:-3] + 'txt'
         im = Image.open(path)
         width, height = im.size
-        landmarks = load_landmarks(landmarks_file)
+
+        # use 2D-FAN detect landmarks
+        fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
+                           flip_input=False, use_cnn_face_detector=True)
+        landmarks = fa.get_landmarks(np.array(im))[-1]
         landmarks[:,1] = height - landmarks[:,1]
-        # select contour points
-        #contour_points = get_contour_side(landmarks)
+
         # generate a contour curve with contour points
         hull = ConvexHull(landmarks)
         # draw landmarks
@@ -41,7 +43,7 @@ def main(args):
                                mask[np.newaxis, :, :]*0.9 +
                                (1-mask)[np.newaxis, :, :]*0.1), axis=0)
         map = CRF(prob, np.array(im))
-        #show_result(im, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * im)
+        show_result(im, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * im)
 
 
 if __name__=="__main__":

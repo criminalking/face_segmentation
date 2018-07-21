@@ -53,9 +53,9 @@ Add crf to second model:
 
 
 ## TODO
-- [ ] Add landmark detection
 - [ ] Modify probability computation in face_segment_yuval.py
 - [ ] Add speed test
+- [x] Add landmark detection
 - [x] Add image cropping
 - [x] Contour -> segment
 - [x] Unify code style

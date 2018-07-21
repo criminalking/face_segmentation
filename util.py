@@ -87,7 +87,7 @@ def crop_image_min(landmarks, image):
 
 
 def load_landmarks(filename, number=68):
-    """Load landmarks
+    """Load landmarks from file
 
     Note:
         Format:
@@ -124,7 +124,7 @@ def show_result(image, mask, seg, save=False, filename='fig.png'):
     if save:
         #plt.imsave('seg.png', seg)
         #plt.imsave('mask.png', mask)
-        plt.savefig(filename)
+        plt.savefig(filename, bbox_inches='tight')
     else:
         plt.show()
 
