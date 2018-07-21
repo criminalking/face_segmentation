@@ -128,10 +128,10 @@ def main(args):
         imName = imName[:-1] if imName[-1] == '/' else imName
         image_name = imName[imName.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
         show_result(imi, S, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
-                    save=True, filename='images/'+image_name)
+                    save=False, filename='images/'+image_name)
         image_name = imName[imName.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi,
-                    save=True, filename='images/'+image_name)
+                    save=False, filename='images/'+image_name)
 
 
 if __name__=="__main__":

@@ -48,17 +48,26 @@ def main(args):
 
         # run net and take argmax for prediction
         net.forward()
-        out = net.blobs['score'].data[0].argmax(axis=0)
+        mask = net.blobs['score'].data[0].argmax(axis=0)
 
-        im_seg = im * np.tile((out!=0)[:,:,np.newaxis], (1,1,3))
+        im_seg = im * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
 
         path = path[:-1] if path[-1] == '/' else path
 
         if '300' in args.prototxt:
-            image_name = path[path.rindex('/')+1:-4] + '_yuval_300_' + args.crop + '.png'
+            image_name = path[path.rindex('/')+1:-4] + '_yuval_300_nocrf_' + args.crop + '.png'
         else:
-            image_name = path[path.rindex('/')+1:-4] + '_yuval_' + args.crop + '.png'
-        show_result(im, out, im_seg, save=True, filename='images/'+image_name)
+            image_name = path[path.rindex('/')+1:-4] + '_yuval_nocrf_' + args.crop + '.png'
+        show_result(im, mask, im_seg, save=True, filename='images/'+image_name)
+
+        # add CRF
+        prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis,:,:]*0.1, mask[np.newaxis,:,:]*0.9+(1-mask)[np.newaxis,:,:]*0.1), axis=0)
+        map = CRF(prob, np.array(im))
+        if '300' in args.prototxt:
+            image_name = path[path.rindex('/')+1:-4] + '_yuval_300_crf_' + args.crop + '.png'
+        else:
+            image_name = path[path.rindex('/')+1:-4] + '_yuval_crf_' + args.crop + '.png'
+        show_result(im, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * im, save=True, filename='images/'+image_name)
 
 
 if __name__=="__main__":
