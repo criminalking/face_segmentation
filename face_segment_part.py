@@ -118,13 +118,14 @@ def main(args):
         map = CRF(prob, im) # final label
 
         # show result
+        save = True if args.save == 'True' else False
         imName = imName[:-1] if imName[-1] == '/' else imName
         image_name = imName[imName.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
         show_result(imi, mask, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
-                    save=True, filename='images/'+image_name)
+                    save=save, filename='images/'+image_name)
         image_name = imName[imName.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi,
-                    save=True, filename='images/'+image_name)
+                    save=save, filename='images/'+image_name)
 
 
 if __name__=="__main__":
@@ -134,5 +135,7 @@ if __name__=="__main__":
                         help='path to input images')
     parser.add_argument('--crop', choices=['min', 'middle', 'no'],
                         default='min', help='choose min/middle/no crop')
+    parser.add_argument('--save', choices=['True', 'False'],
+                        default='False', help='choose if save final result')
     args = parser.parse_args()
     main(args)

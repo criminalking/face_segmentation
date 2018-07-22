@@ -57,12 +57,13 @@ def main(args):
         mask = net.blobs['score'].data[0].argmax(axis=0)
         im_seg = imi * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
 
+        save = True if args.save == 'True' else False
         path = path[:-1] if path[-1] == '/' else path
         if '300' in args.prototxt:
             image_name = path[path.rindex('/')+1:-4] + '_yuval_300_nocrf_' + args.crop + '.png'
         else:
             image_name = path[path.rindex('/')+1:-4] + '_yuval_nocrf_' + args.crop + '.png'
-        show_result(imi, mask, im_seg, save=False, filename='images/'+image_name)
+        show_result(imi, mask, im_seg, save=save, filename='images/'+image_name)
 
         # add CRF
         prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis,:,:]*0.1, mask[np.newaxis,:,:]*0.9+(1-mask)[np.newaxis,:,:]*0.1), axis=0)
@@ -71,21 +72,23 @@ def main(args):
             image_name = path[path.rindex('/')+1:-4] + '_yuval_300_crf_' + args.crop + '.png'
         else:
             image_name = path[path.rindex('/')+1:-4] + '_yuval_crf_' + args.crop + '.png'
-        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * im, save=False, filename='images/'+image_name)
+        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=save, filename='images/'+image_name)
 
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Face segmentation of yuval.')
-    parser.add_argument('--image_list', default='data/images/list.txt',
+    parser.add_argument('--image_list', default='input/list.txt',
                         type=str, help='path to image')
     parser.add_argument('--prototxt',
-                        default='data/face_seg_fcn8s_300_deploy.prototxt',
+                        default='model/face_seg_fcn8s_300_deploy.prototxt',
                         type=str, help='path to prototxt')
     parser.add_argument('--caffemodel',
-                        default='data/face_seg_fcn8s_300.caffemodel',
+                        default='model/face_seg_fcn8s_300.caffemodel',
                         type=str, help='path to caffemodel')
     parser.add_argument('--crop', choices=['min', 'middle', 'no'],
                         default='min', help='choose min/middle/no crop')
+    parser.add_argument('--save', choices=['True', 'False'],
+                        default='False', help='choose if save final result')
     args = parser.parse_args()
 
     main(args)
