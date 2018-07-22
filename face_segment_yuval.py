@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from PIL import Image
+from PIL import ExifTags
 import matplotlib.pyplot as plt
 
 import caffe
@@ -18,6 +19,13 @@ def main(args):
 
         if path[-3:] == 'jpg' or path[-3:] == 'png':
             imi = Image.open(path)
+            if imi._getexif():
+                exif=dict((ExifTags.TAGS[k], v) for k, v in imi._getexif().items() if k in ExifTags.TAGS)
+                if exif['Orientation'] == 6:
+                    imi = imi.rotate(-90, expand=True)
+            # resize for memory
+            width, height = imi.size
+            imi = imi.resize((int(800*width/height), 800))
         else:
             continue
 
@@ -73,6 +81,7 @@ def main(args):
         else:
             image_name = path[path.rindex('/')+1:-4] + '_yuval_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=save, filename='images/'+image_name)
+        #show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=True, filename=image_name)
 
 
 if __name__=="__main__":

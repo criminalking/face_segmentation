@@ -58,7 +58,7 @@ def crop_image_middle(landmarks, image):
 def crop_image_min(landmarks, image):
     im_width, im_height = image.size
     landmarks = landmarks.astype('uint16')
-    margin = 20
+    margin = 60
     minx, miny = np.min(landmarks, 0) - margin
     minx, miny = max(minx, 0), max(miny, 0)
     maxx, maxy = np.max(landmarks, 0) + margin
@@ -122,9 +122,8 @@ def show_result(image, mask, seg, save=False, filename='fig.png'):
     ax3.imshow(seg)
 
     if save:
-        #plt.imsave('seg.png', seg)
-        #plt.imsave('mask.png', mask)
-        plt.savefig(filename, bbox_inches='tight')
+        plt.imsave(filename, seg)
+        #plt.savefig(filename, bbox_inches='tight')
     else:
         plt.show()
 
@@ -141,8 +140,8 @@ def CRF(prob, im):
     d.setUnaryEnergy(U)
     # set Pairwise
     im = np.ascontiguousarray(im).astype('uint8')
-    d.addPairwiseGaussian(sxy=(3,3), compat=3)
-    d.addPairwiseBilateral(sxy=(30,30), srgb=(7,7,7), rgbim=im, compat=10)
-    Q = d.inference(7)
+    d.addPairwiseGaussian(sxy=(11,11), compat=3)
+    d.addPairwiseBilateral(sxy=(60,60), srgb=(3,3,3), rgbim=im, compat=10)
+    Q = d.inference(10)
     map = np.argmax(Q, axis=0).reshape((height,width))
     return map

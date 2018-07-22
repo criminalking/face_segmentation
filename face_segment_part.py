@@ -5,6 +5,7 @@ import caffe
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
+from PIL import ExifTags
 import scipy.io
 import string
 import matplotlib.pyplot as plt
@@ -52,6 +53,13 @@ def main(args):
     for path in image_paths:
         if path[-3:] == 'jpg' or path[-3:] == 'png':
             imi = Image.open(path)
+            if imi._getexif():
+                exif=dict((ExifTags.TAGS[k], v) for k, v in imi._getexif().items() if k in ExifTags.TAGS)
+                if exif['Orientation'] == 6:
+                    imi = imi.rotate(-90, expand=True)
+            # resize for memory
+            width, height = imi.size
+            imi = imi.resize((int(800*width/height), 800))
         else:
             continue
 
@@ -94,6 +102,7 @@ def main(args):
         C = np.pad(C, ((0,0), (120,120), (120,120)), 'constant')
 
         landmarks[:,0], landmarks[:,1] = landmarks[:,1].copy(), landmarks[:,0].copy()
+
         for k in range(0,68):
             C[k,landmarks[k,0]+120-100:landmarks[k,0]+120+101,landmarks[k,1]+120-100:landmarks[k,1]+120+101] = f
         C = C[:,120:-120,120:-120] * 0.5
