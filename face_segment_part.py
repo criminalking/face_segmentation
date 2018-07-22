@@ -49,9 +49,9 @@ def main(args):
     image_paths = read_list(args.image_list)
 
     # segment and measure performance
-    for imName in image_paths:
-        if imName[-3:] == 'jpg' or imName[-3:] == 'png':
-            imi = Image.open(imName)
+    for path in image_paths:
+        if path[-3:] == 'jpg' or path[-3:] == 'png':
+            imi = Image.open(path)
         else:
             continue
 
@@ -119,11 +119,11 @@ def main(args):
 
         # show result
         save = True if args.save == 'True' else False
-        imName = imName[:-1] if imName[-1] == '/' else imName
-        image_name = imName[imName.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
+        path = path[:-1] if path[-1] == '/' else path
+        image_name = path[path.rindex('/')+1:-4] + '_part_nocrf_' + args.crop + '.png'
         show_result(imi, mask, np.tile((mask!=0)[:,:,np.newaxis], (1,1,3)) * imi,
                     save=save, filename='images/'+image_name)
-        image_name = imName[imName.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
+        image_name = path[path.rindex('/')+1:-4] + '_part_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi,
                     save=save, filename='images/'+image_name)
 

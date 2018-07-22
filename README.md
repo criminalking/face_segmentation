@@ -38,18 +38,21 @@ Add crf:
 - face_segment_yuval:
 
 Model face_seg_fcn8s(size:500x500):  
-<img src="images/image04250_yuval_min.png" width="500">
+<img src="images/image04250_yuval_min.png" width="500">  
 <img src="images/image00091_yuval_min.png" width="500">  
 Model face_seg_fcn8s_300_no_aug(size:300x300):  
-<img src="images/image04250_yuval_300_nocrf_min.png" width="500">
+<img src="images/image04250_yuval_300_nocrf_min.png" width="500">  
 <img src="images/image00091_yuval_300_nocrf_min.png" width="500">  
 Add crf to second model:  
 <img src="images/image04250_yuval_300_crf_min.png" width="500">  
 <img src="images/image00091_yuval_300_crf_min.png" width="500">  
 
 - face_segment_contour:
-<img src="images/image04250_contour.png" width="500">
-<img src="images/image00091_contour.png" width="500">
+<img src="images/image04250_contour_nocrf.png" width="500">  
+<img src="images/image00091_contour_nocrf.png" width="500">  
+Add crf:  
+<img src="images/image04250_contour_crf.png" width="500">  
+<img src="images/image00091_contour_crf.png" width="500">
 
 
 ## TODO
