@@ -56,7 +56,7 @@ Add crf:
 
 
 ## TODO
-- [ ] Modify probability computation in face_segment_yuval.py
+- [x] Modify probability computation in face_segment_yuval.py
 - [ ] Add speed test
 - [x] Add landmark detection
 - [x] Add image cropping

@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 from PIL import ExifTags
 import matplotlib.pyplot as plt
+from scipy import ndimage
 
 import caffe
 import argparse
@@ -73,8 +74,12 @@ def main(args):
             image_name = path[path.rindex('/')+1:-4] + '_yuval_nocrf_' + args.crop + '.png'
         show_result(imi, mask, im_seg, save=save, filename='images/'+image_name)
 
+        # generate prob
+        #prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis,:,:]*0.1, mask[np.newaxis,:,:]*0.9+(1-mask)[np.newaxis,:,:]*0.1), axis=0)
+        prob = ndimage.gaussian_filter(mask*1.0, sigma=5)
+        prob = np.concatenate(((1-prob)[np.newaxis,:,:], prob[np.newaxis,:,:]), axis=0)
+
         # add CRF
-        prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis,:,:]*0.1, mask[np.newaxis,:,:]*0.9+(1-mask)[np.newaxis,:,:]*0.1), axis=0)
         map = CRF(prob, np.array(imi))
         if '300' in args.prototxt:
             image_name = path[path.rindex('/')+1:-4] + '_yuval_300_crf_' + args.crop + '.png'

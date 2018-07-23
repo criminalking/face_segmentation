@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import argparse
-from scipy.spatial import ConvexHull
-from skimage import draw
 import numpy as np
+from scipy.spatial import ConvexHull
+from scipy import ndimage
+from skimage import draw
 import matplotlib.pyplot as plt
 from PIL import Image
 from PIL import ExifTags
@@ -21,6 +22,7 @@ def main(args):
         # resize for memory
         width, height = im.size
         im = im.resize((int(800*width/height), 800))
+        width, height = im.size
 
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
@@ -47,10 +49,10 @@ def main(args):
                     save=save, filename='images/'+image_name)
 
         # add CRF
-        prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 +
-                               mask[np.newaxis, :, :]*0.1,
-                               mask[np.newaxis, :, :]*0.9 +
-                               (1-mask)[np.newaxis, :, :]*0.1), axis=0)
+        #prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis, :, :]*0.1, mask[np.newaxis, :, :]*0.9 + (1-mask)[np.newaxis, :, :]*0.1), axis=0)
+        prob = ndimage.gaussian_filter(mask*1.0, sigma=5)
+        prob = np.concatenate(((1-prob)[np.newaxis,:,:], prob[np.newaxis,:,:]), axis=0)
+
         map = CRF(prob, np.array(im))
         image_name = path[path.rindex('/')+1:-4] + '_contour_crf.png'
         show_result(im, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * im,
