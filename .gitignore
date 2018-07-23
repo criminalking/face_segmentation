@@ -114,3 +114,5 @@ input_author/
 caffe/
 caffe_old/
 faceseg/
+
+*.png
