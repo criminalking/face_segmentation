@@ -74,16 +74,22 @@ def main(args):
         elif args.crop == 'min':
             imi, landmarks = crop_image_min(landmarks, imi)
 
+        landmarks[:,0], landmarks[:,1] = landmarks[:,1].copy(), landmarks[:,0].copy()
+
         # prepare the image, limit image size for memory
         width, height = imi.size
         if width > height:
             if width > 450:
                 imi = imi.resize((450, int(450 * height/width)))
+                landmarks[:,0] = landmarks[:,0] * 450.0 / width
+                landmarks[:,1] = landmarks[:,1] * 450.0 / width
             #elif height < 300:
             #    imi = imi.resize((int(300 * width/height), 300))
         else:
             if height > 450:
                 imi = imi.resize((int(450 * width/height), 450))
+                landmarks[:,0] = landmarks[:,0] * 450.0 / height
+                landmarks[:,1] = landmarks[:,1] * 450.0 / height
             #elif width < 300:
             #    imi = imi.resize((300, int(300 * height/width)))
         width, height = imi.size
@@ -100,8 +106,6 @@ def main(args):
         # Do some recovery of the points
         C = np.zeros((landmarks.shape[0], height, width), 'uint8') # cleaned up heatmaps
         C = np.pad(C, ((0,0), (120,120), (120,120)), 'constant')
-
-        landmarks[:,0], landmarks[:,1] = landmarks[:,1].copy(), landmarks[:,0].copy()
 
         for k in range(0,68):
             C[k,landmarks[k,0]+120-100:landmarks[k,0]+120+101,landmarks[k,1]+120-100:landmarks[k,1]+120+101] = f

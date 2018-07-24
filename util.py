@@ -140,8 +140,8 @@ def CRF(prob, im):
     d.setUnaryEnergy(U)
     # set Pairwise
     im = np.ascontiguousarray(im).astype('uint8')
-    d.addPairwiseGaussian(sxy=(11,11), compat=3)
-    d.addPairwiseBilateral(sxy=(60,60), srgb=(3,3,3), rgbim=im, compat=10)
+    d.addPairwiseGaussian(sxy=(5,5), compat=3)
+    d.addPairwiseBilateral(sxy=(60,60), srgb=(5,5,5), rgbim=im, compat=10)
     Q = d.inference(10)
     map = np.argmax(Q, axis=0).reshape((height,width))
     return map
