@@ -4,6 +4,8 @@ from PIL import Image
 from PIL import ExifTags
 import matplotlib.pyplot as plt
 from scipy import ndimage
+from scipy.spatial import ConvexHull
+from skimage import draw
 import os
 
 import caffe
@@ -27,6 +29,7 @@ def main(args):
             # resize for memory
             width, height = imi.size
             imi = imi.resize((int(800*width/height), 800))
+            width, height = imi.size
         else:
             continue
 
@@ -40,11 +43,19 @@ def main(args):
             imi, landmarks = crop_image_middle(landmarks, imi)
         elif args.crop == 'min':
             imi, landmarks = crop_image_min(landmarks, imi)
+        width, height = imi.size
 
+        #landmarks[:,1] = height - landmarks[:,1]
         if '300' in args.prototxt:
             imi = imi.resize((300, 300))
+            landmarks[:,0] = landmarks[:,0] * 300 / width
+            landmarks[:,1] = landmarks[:,1] * 300 / height
+            width = height = 300
         else:
             imi = imi.resize((500, 500))
+            landmarks[:,0] = landmarks[:,0] * 500 / width
+            landmarks[:,1] = landmarks[:,1] * 500 / height
+            width = height = 500
         im = np.array(imi, dtype=np.float32)
         im = im[:,:,::-1]
         im -= np.array((104.00698793,116.66876762,122.67891434))
@@ -64,7 +75,6 @@ def main(args):
         # run net and take argmax for prediction
         net.forward()
         mask = net.blobs['score'].data[0].argmax(axis=0)
-        im_seg = imi * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
 
         save = True if args.save == 'True' else False
         path = path[:-1] if path[-1] == '/' else path
@@ -73,7 +83,21 @@ def main(args):
         else:
             image_name = path[path.rindex('/')+1:-4] + '_yuval_nocrf_' + args.crop + '.png'
 
-        show_result(imi, mask, im_seg, save=save, filename='images/'+image_name)
+        # draw landmarks
+        lm = np.array(imi)
+        for i in range(landmarks.shape[0]):
+            rr, cc = draw.circle(landmarks[i,1].astype('int32'), landmarks[i,0].astype('int32'), 5)
+            lm[rr, cc, :] = np.array((255, 0, 0))
+
+        # create mask contour
+        hull = ConvexHull(landmarks)
+        mask_contour = np.zeros((height, width))
+        rr, cc = draw.polygon(landmarks[hull.vertices,1], landmarks[hull.vertices,0], mask_contour.shape)
+        mask_contour[rr,cc] = 1
+        mask = np.clip(mask + mask_contour, 0, 1)
+
+        im_seg = imi * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
+        show_result(lm, mask, im_seg, save=save, filename='images/'+image_name)
 
         # generate prob
         #prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis,:,:]*0.1, mask[np.newaxis,:,:]*0.9+(1-mask)[np.newaxis,:,:]*0.1), axis=0)
