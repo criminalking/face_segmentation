@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import ExifTags
+from PIL import Image
 
 import pydensecrf.densecrf as dcrf
 
@@ -12,6 +14,15 @@ def read_list(filename):
             img_path = line.strip().split()
             img_list.append(img_path[0])
     return img_list
+
+
+def open_image(path):
+    im = Image.open(path)
+    if path[-3:] == 'jpg' and im._getexif():
+        exif=dict((ExifTags.TAGS[k], v) for k, v in im._getexif().items() if k in ExifTags.TAGS)
+        if exif['Orientation'] == 6:
+            im = im.rotate(-90, expand=True)
+    return im
 
 
 def crop_image_middle(landmarks, image):
@@ -59,6 +70,7 @@ def crop_image_min(landmarks, image):
     im_width, im_height = image.size
     landmarks = landmarks.astype('uint16')
     margin = 80
+    margin = np.min((margin, np.min(landmarks), im_width-1-np.max(landmarks[:,0]), im_height-1-np.max(landmarks[:,1])))
     minx, miny = np.min(landmarks, 0) - margin
     minx, miny = max(minx, 0), max(miny, 0)
     maxx, maxy = np.max(landmarks, 0) + margin

@@ -6,23 +6,19 @@ from scipy import ndimage
 from skimage import draw
 import matplotlib.pyplot as plt
 from PIL import Image
-from PIL import ExifTags
 
 from face_alignment.api import FaceAlignment, LandmarksType, NetworkSize
-from util import read_list, show_result, CRF
+from util import read_list, show_result, CRF, open_image
 
 def main(args):
     image_paths = read_list(args.image_list)
     for path in image_paths:
-        im = Image.open(path)
-        if im._getexif():
-            exif=dict((ExifTags.TAGS[k], v) for k, v in im._getexif().items() if k in ExifTags.TAGS)
-            if exif['Orientation'] == 6:
-                im = im.rotate(-90, expand=True)
+        im = open_image(path)
         # resize for memory
         width, height = im.size
-        im = im.resize((int(800*width/height), 800))
-        width, height = im.size
+        if height > 800:
+            im = im.resize((int(800*width/height), 800))
+            width, height = im.size
 
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,

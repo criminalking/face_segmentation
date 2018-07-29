@@ -5,7 +5,6 @@ import caffe
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
-from PIL import ExifTags
 import scipy.io
 import string
 import matplotlib.pyplot as plt
@@ -52,14 +51,11 @@ def main(args):
     # segment and measure performance
     for path in image_paths:
         if path[-3:] == 'jpg' or path[-3:] == 'png':
-            imi = Image.open(path)
-            if imi._getexif():
-                exif=dict((ExifTags.TAGS[k], v) for k, v in imi._getexif().items() if k in ExifTags.TAGS)
-                if exif['Orientation'] == 6:
-                    imi = imi.rotate(-90, expand=True)
+            imi = open_image(path)
             # resize for memory
             width, height = imi.size
-            imi = imi.resize((int(800*width/height), 800))
+            if height > 800:
+                imi = imi.resize((int(800*width/height), 800))
         else:
             continue
 
