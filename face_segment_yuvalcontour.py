@@ -33,8 +33,12 @@ def main(args):
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
                            flip_input=False, use_cnn_face_detector=True)
-        landmarks = fa.get_landmarks(np.array(imi))[-1]
-        landmarks = landmarks.astype('uint16')
+        try:
+            landmarks = fa.get_landmarks(np.array(imi))[-1]
+            landmarks = landmarks.astype('uint16')
+        except:
+            # no face deteced
+            continue
 
         if args.crop == 'middle':
             imi, landmarks = crop_image_middle(landmarks, imi)
@@ -76,9 +80,9 @@ def main(args):
         save = True if args.save == 'True' else False
         path = path[:-1] if path[-1] == '/' else path
         if '300' in args.prototxt:
-            image_name = path[path.rindex('/')+1:-4] + '_yuval_300_nocrf_' + args.crop + '.png'
+            image_name = path[path.rindex('/')+1:-4] + '_yuvalcontour_300_nocrf_' + args.crop + '.png'
         else:
-            image_name = path[path.rindex('/')+1:-4] + '_yuval_nocrf_' + args.crop + '.png'
+            image_name = path[path.rindex('/')+1:-4] + '_yuvalcontour_nocrf_' + args.crop + '.png'
 
         # draw landmarks
         lm = np.array(imi)
@@ -94,7 +98,12 @@ def main(args):
         mask = np.clip(mask + mask_contour, 0, 1)
 
         im_seg = imi * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
-        show_result(lm, mask, im_seg, save=save, filename='images/'+image_name)
+
+        dir = 'images/' + path[path.rindex('/', 0, path.rindex('/'))+1:path.rindex('/')] + '/'
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        show_result(lm, mask, im_seg, save=save, filename=dir+image_name)
 
         # generate prob
         #prob = np.concatenate(((1-mask)[np.newaxis,:,:]*0.9 + mask[np.newaxis,:,:]*0.1, mask[np.newaxis,:,:]*0.9+(1-mask)[np.newaxis,:,:]*0.1), axis=0)
@@ -104,10 +113,10 @@ def main(args):
         # add CRF
         map = CRF(prob, np.array(imi))
         if '300' in args.prototxt:
-            image_name = path[path.rindex('/')+1:-4] + '_yuval_300_crf_' + args.crop + '.png'
+            image_name = path[path.rindex('/')+1:-4] + '_yuvalcontour_300_crf_' + args.crop + '.png'
         else:
-            image_name = path[path.rindex('/')+1:-4] + '_yuval_crf_' + args.crop + '.png'
-        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=save, filename='images/'+image_name)
+            image_name = path[path.rindex('/')+1:-4] + '_yuvalcontour_crf_' + args.crop + '.png'
+        show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=save, filename=dir+image_name)
         #show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=True, filename=image_name)
 
 

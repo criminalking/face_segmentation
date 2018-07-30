@@ -94,8 +94,9 @@ def crop_image_min(landmarks, image):
             topx = im_height - length
         else:
             topx = centerx - length / 2.0
-    minx, miny = int(topx), int(topy)
-    return image.crop((minx, miny, minx+length, miny+length)), landmarks - np.array((minx, miny))
+    minx, miny = max(0,int(topx)), max(0,int(topy))
+    maxx, maxy = min(minx+length, im_width-1), min(maxx+length, im_height-1)
+    return image.crop((minx, miny, maxx, maxy)), landmarks - np.array((minx, miny))
 
 
 def load_landmarks(filename, number=68):

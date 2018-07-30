@@ -23,8 +23,11 @@ def main(args):
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
                            flip_input=False, use_cnn_face_detector=True)
-        landmarks = fa.get_landmarks(np.array(im))[-1]
-        landmarks[:,1] = height - landmarks[:,1]
+        try:
+            landmarks = fa.get_landmarks(np.array(im))[-1]
+            landmarks[:,1] = height - landmarks[:,1]
+        except:
+            continue
 
         # generate a contour curve with contour points
         hull = ConvexHull(landmarks)

@@ -62,8 +62,11 @@ def main(args):
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
                            flip_input=False, use_cnn_face_detector=True)
-        landmarks = fa.get_landmarks(np.array(imi))[-1]
-        landmarks = landmarks.astype('uint16')
+        try:
+            landmarks = fa.get_landmarks(np.array(imi))[-1]
+            landmarks = landmarks.astype('uint16')
+        except:
+            continue
 
         if args.crop == 'middle':
             imi, landmarks = crop_image_middle(landmarks, imi)
