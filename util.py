@@ -94,9 +94,28 @@ def crop_image_min(landmarks, image):
             topx = im_height - length
         else:
             topx = centerx - length / 2.0
-    minx, miny = max(0,int(topx)), max(0,int(topy))
-    maxx, maxy = min(minx+length, im_width-1), min(maxx+length, im_height-1)
-    return image.crop((minx, miny, maxx, maxy)), landmarks - np.array((minx, miny))
+    minx, miny = int(topx), int(topy)
+    landmarks[:,0] = np.clip(landmarks[:,0]-minx, 0, length-1)
+    landmarks[:,1] = np.clip(landmarks[:,1]-miny, 0, length-1)
+    return image.crop((minx, miny, minx+length, miny+length)), landmarks
+
+
+def save_landmarks(filename, landmarks):
+    """Save landmarks to file
+
+    Note:
+        Format:
+        x1,y1
+        x2,y2
+
+    """
+    try:
+        file = open(filename, 'w')
+    except OSError:
+        print('cannot open', filename)
+
+    for i in range(landmarks.shape[0]):
+        file.write('%f,%f\n' % (landmarks[i,0], landmarks[i,1]))
 
 
 def load_landmarks(filename, number=68):
@@ -135,10 +154,14 @@ def show_result(image, mask, seg, save=False, filename='fig.png'):
     ax3.imshow(seg)
 
     if save:
-        plt.imsave(filename, seg)
+        mask = Image.fromarray(np.uint8(mask*255))
+        mask = mask.resize((224, 224))
+        plt.imsave(filename, mask)
         #plt.savefig(filename, bbox_inches='tight')
     else:
         plt.show()
+
+    plt.close(fig)
 
 
 def CRF(prob, im):

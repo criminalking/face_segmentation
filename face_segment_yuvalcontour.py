@@ -17,8 +17,17 @@ from util import *
 def main(args):
     image_paths = read_list(args.image_list)
 
+    # init
+    caffe.set_device(0)
+    caffe.set_mode_gpu()
+
+    # load net
+    net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
+
     for path in image_paths:
         # load image, switch to BGR, subtract mean, and make dims C x H x W for Caffe
+
+        print path
 
         if path[-3:] == 'jpg' or path[-3:] == 'png':
             imi = open_image(path)
@@ -30,11 +39,17 @@ def main(args):
         else:
             continue
 
+        dir = 'images/' + path[path.rindex('/', 0, path.rindex('/'))+1:path.rindex('/')] + '/'
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        txtfile = dir+path[path.rindex('/')+1:-3]+'txt'
+
         # use 2D-FAN detect landmarks
         fa = FaceAlignment(LandmarksType._2D, enable_cuda=True,
                            flip_input=False, use_cnn_face_detector=True)
         try:
             landmarks = fa.get_landmarks(np.array(imi))[-1]
+            save_landmarks(txtfile, landmarks)
             landmarks = landmarks.astype('uint16')
         except:
             # no face deteced
@@ -46,7 +61,6 @@ def main(args):
             imi, landmarks = crop_image_min(landmarks, imi)
         width, height = imi.size
 
-        #landmarks[:,1] = height - landmarks[:,1]
         if '300' in args.prototxt:
             imi = imi.resize((300, 300))
             landmarks[:,0] = landmarks[:,0] * 300 / width
@@ -61,13 +75,6 @@ def main(args):
         im = im[:,:,::-1]
         im -= np.array((104.00698793,116.66876762,122.67891434))
         im = im.transpose((2,0,1))
-
-        # init
-        caffe.set_device(0)
-        caffe.set_mode_gpu()
-
-        # load net
-        net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
 
         # shape for input (data blob is N x C x H x W), set data
         net.blobs['data'].reshape(1, *im.shape)
@@ -87,7 +94,7 @@ def main(args):
         # draw landmarks
         lm = np.array(imi)
         for i in range(landmarks.shape[0]):
-            rr, cc = draw.circle(landmarks[i,1].astype('int32'), landmarks[i,0].astype('int32'), 5)
+            rr, cc = draw.circle(landmarks[i,1].astype('int32'), landmarks[i,0].astype('int32'), 1)
             lm[rr, cc, :] = np.array((255, 0, 0))
 
         # create mask contour
@@ -98,10 +105,6 @@ def main(args):
         mask = np.clip(mask + mask_contour, 0, 1)
 
         im_seg = imi * np.tile((mask!=0)[:,:,np.newaxis], (1,1,3))
-
-        dir = 'images/' + path[path.rindex('/', 0, path.rindex('/'))+1:path.rindex('/')] + '/'
-        if not os.path.exists(dir):
-            os.makedirs(dir)
 
         show_result(lm, mask, im_seg, save=save, filename=dir+image_name)
 
@@ -117,7 +120,6 @@ def main(args):
         else:
             image_name = path[path.rindex('/')+1:-4] + '_yuvalcontour_crf_' + args.crop + '.png'
         show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=save, filename=dir+image_name)
-        #show_result(imi, map, np.tile((map!=0)[:,:,np.newaxis], (1,1,3)) * imi, save=True, filename=image_name)
 
 
 if __name__=="__main__":

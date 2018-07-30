@@ -15,6 +15,13 @@ from util import *
 def main(args):
     image_paths = read_list(args.image_list)
 
+    # init
+    caffe.set_device(0)
+    caffe.set_mode_gpu()
+
+    # load net
+    net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
+
     for path in image_paths:
         # load image, switch to BGR, subtract mean, and make dims C x H x W for Caffe
 
@@ -49,13 +56,6 @@ def main(args):
         im = im[:,:,::-1]
         im -= np.array((104.00698793,116.66876762,122.67891434))
         im = im.transpose((2,0,1))
-
-        # init
-        caffe.set_device(0)
-        caffe.set_mode_gpu()
-
-        # load net
-        net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
 
         # shape for input (data blob is N x C x H x W), set data
         net.blobs['data'].reshape(1, *im.shape)

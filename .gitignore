@@ -109,6 +109,8 @@ input/*
 !model/empty.md
 !input/empty.md
 images/crop.py
+images/train_*
+images/val_*
 
 input_author/
 caffe/
